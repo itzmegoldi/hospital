@@ -11,7 +11,7 @@ database:
   password: $env["DB_PASSWORD"]
   database: $env["DB_NAME"]
   url: $env["DB_URL"]
-  port: "5432"
+  port: $env["DB_PORT"]
 aws:
   access_key: random
   aws_secret: random
