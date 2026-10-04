@@ -1,0 +1,43 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: ./build/Dockerfile.api
+      args:
+        DEV: true
+    ports:
+      - "8000:8000"
+    env_file: ./.env
+    environment:
+      - APP_ENV=local
+      - DB_URL=db
+      - DB_USERNAME=dbuser
+      - DB_PASSWORD=root123
+      - DB_NAME=hospital
+      - DB_PORT=5432
+      - RUN_MIGRATION=
+    restart: "no"
+    volumes:
+      - .:/app
+      - ./app/uploads:/app/app/uploads
+    networks:
+      - ls
+    depends_on:
+      - db
+
+  db:
+    image: postgres:latest
+    volumes:
+      - /tmp/docker_data/data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: hospital
+      POSTGRES_USER: dbuser
+      POSTGRES_PASSWORD: root123
+    ports:
+      - "5432:5432"
+    networks:
+      - ls
+
+networks:
+  ls:
+    driver: bridge
