@@ -10,7 +10,7 @@ database:
   username: $env["DB_USERNAME"]
   password: $env["DB_PASSWORD"]
   database: $env["DB_NAME"]
-  url: localhost
+  url: $env["DB_URL"]
   port: "5432"
 aws:
   access_key: random

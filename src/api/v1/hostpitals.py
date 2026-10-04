@@ -69,7 +69,6 @@ async def bulk_upload_hospitals(
         contents = await file.read()
         validate_hospital_csv(contents)
 
-        # We return a StreamingResponse that consumes the generator from the service
         async def event_generator():
             async for event in service.process_bulk_upload(file.filename, contents):
                 yield json.dumps(event) + "\n"
@@ -82,4 +81,21 @@ async def bulk_upload_hospitals(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to process hospital CSV: {str(e)}",
+        )
+
+@router.post("/bulk/resume")
+async def resume_bulk_uploads(
+    service: HOSPITALSERVICEDEP
+):
+    try:
+        async def event_generator():
+            async for event in service.resume_pending_uploads():
+                yield json.dumps(event) + "\n"
+
+        return StreamingResponse(event_generator(), media_type="application/x-ndjson")
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An error occurred while resuming pending uploads: {str(e)}"
         )

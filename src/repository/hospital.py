@@ -1,4 +1,4 @@
-from typing import Protocol, Optional
+from typing import Protocol, Optional, List
 import uuid
 from sqlalchemy.orm import Session
 from src.pkg.db import IHandler
@@ -8,6 +8,7 @@ class IHospitalRepo(Protocol):
     def create_file_record(self, batch_id: str, filename: str) -> HospitalFiles: ...
     def update_file_status(self, batch_id: str, status: str, response: dict = None) -> None: ...
     def get_file_by_batch_id(self, batch_id: str) -> Optional[HospitalFiles]: ...
+    def get_pending_records(self) -> List[HospitalFiles]: ...
 
 class HospitalRepo(IHospitalRepo):
     def __init__(self, db_handler: IHandler):
@@ -41,3 +42,12 @@ class HospitalRepo(IHospitalRepo):
         record = session.query(HospitalFiles).filter_by(batch_id=batch_id).first()
         session.close()
         return record
+
+    def get_pending_records(self) -> List[HospitalFiles]:
+        session = self.db_handler.get_session()
+        # Filter records where status is either PROCESSING or FAILED
+        records = session.query(HospitalFiles).filter(
+            HospitalFiles.status.in_([FileStatus.PROCESSING.value, FileStatus.FAILED.value])
+        ).all()
+        session.close()
+        return records
